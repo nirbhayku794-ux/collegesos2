@@ -240,3 +240,6 @@ if (document.getElementById("emergencyList")) {
     loadEmergencies();
     setInterval(loadEmergencies, 3000);
 }
+
+window.submitEmergency = submitEmergency;
+window.resolveEmergency = resolveEmergency;
