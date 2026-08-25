@@ -1,11 +1,21 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   root: 'data/public',
+
   build: {
     outDir: '../../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'data/public/index.html'),
+        student: resolve(__dirname, 'data/public/student.html'),
+        admin: resolve(__dirname, 'data/public/admin.html'),
+      },
+    },
   },
+
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -17,6 +27,7 @@ export default defineConfig({
       },
     },
   },
+
   preview: {
     host: '0.0.0.0',
     port: 4173,
