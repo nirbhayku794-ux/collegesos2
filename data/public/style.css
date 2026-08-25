@@ -229,34 +229,20 @@ button {
     margin-bottom: 10px;
 }
 
-.safety-box p {
-    line-height: 1.6;
-}
-
+.safety-box {
     display: none;
-
     margin-top: 20px;
-
     padding: 20px;
-
     background: #fff7ed;
-
     border-left: 5px solid #f97316;
-
     border-radius: 12px;
-
 }
 
 .safety-box h2 {
-
     margin-bottom: 10px;
-
 }
 
 .safety-box p {
-
     line-height: 1.7;
-
     white-space: pre-line;
-
 }
