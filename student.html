@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Report Emergency</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>🚨 Report Emergency</h1>
+
+    <p>CampusSOS</p>
+
+</header>
+
+<main>
+
+    <div class="card">
+
+        <label>Your Name</label>
+
+        <input
+            id="name"
+            type="text"
+            placeholder="Enter your name"
+        >
+
+        <label>Emergency Type</label>
+
+        <select id="type">
+
+            <option value="Medical">
+                🏥 Medical
+            </option>
+
+            <option value="Fire">
+                🔥 Fire
+            </option>
+
+            <option value="Security">
+                🛡️ Security
+            </option>
+
+            <option value="Other">
+                ⚠️ Other
+            </option>
+
+        </select>
+
+        <label>Location</label>
+
+        <input
+            id="location"
+            type="text"
+            placeholder="Example: Block A, Room 204"
+        >
+
+        <label>Description</label>
+
+        <textarea
+            id="description"
+            placeholder="Briefly describe the situation"
+        ></textarea>
+
+        <button
+            class="danger"
+            onclick="submitEmergency()"
+        >
+            🚨 SEND SOS
+        </button>
+
+        <p id="result"></p>
+
+        <div id="safetyBox" class="safety-box" style="display: none;">
+            <h3>Immediate Safety Steps</h3>
+            <p id="safetySuggestions"></p>
+        </div>
+
+    </div>
+
+</main>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
