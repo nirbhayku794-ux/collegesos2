@@ -1,36 +1,19 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
+const dotenv = require("dotenv");
+const { createClient } = require("@supabase/supabase-js");
+
+dotenv.config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const dataFile = path.join(__dirname, "data", "emergencies.json");
-
-function readEmergencies() {
-    try {
-        if (!fs.existsSync(dataFile)) {
-            return [];
-        }
-
-        const data = fs.readFileSync(dataFile, "utf8");
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        console.error("Error reading emergencies:", error);
-        return [];
-    }
-}
-
-function saveEmergencies(emergencies) {
-    fs.writeFileSync(
-        dataFile,
-        JSON.stringify(emergencies, null, 2),
-        "utf8"
-    );
-}
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
 
 app.get("/", (req, res) => {
     res.json({
@@ -39,12 +22,42 @@ app.get("/", (req, res) => {
     });
 });
 
-app.get("/api/emergencies", (req, res) => {
-    const emergencies = readEmergencies();
-    res.json(emergencies);
+// GET all emergencies
+app.get("/api/emergencies", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("emergencies")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Supabase GET error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to fetch emergencies."
+            });
+        }
+
+        const emergencies = data.map(item => ({
+            ...item,
+            time: item.created_at
+        }));
+
+        res.json(emergencies);
+
+    } catch (error) {
+        console.error("Emergency fetch error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Unable to fetch emergencies."
+        });
+    }
 });
 
-app.post("/api/emergencies", (req, res) => {
+// CREATE emergency
+app.post("/api/emergencies", async (req, res) => {
     try {
         const {
             name,
@@ -60,26 +73,35 @@ app.post("/api/emergencies", (req, res) => {
             });
         }
 
-        const emergencies = readEmergencies();
-
         const emergency = {
-            id: Date.now(),
             name: name || "Anonymous",
             type: type || "Other",
             location: location.trim(),
             description: description || "",
-            status: "ACTIVE",
-            time: new Date().toISOString(),
-            suggestions:
-                "Stay in a safe location. Move away from immediate hazards if possible. Ask a nearby staff member for help. Wait for trained responders. Contact emergency services for serious danger."
+            status: "ACTIVE"
         };
 
-        emergencies.unshift(emergency);
-        saveEmergencies(emergencies);
+        const { data, error } = await supabase
+            .from("emergencies")
+            .insert([emergency])
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Supabase INSERT error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to save emergency."
+            });
+        }
 
         res.status(201).json({
             success: true,
-            emergency
+            emergency: {
+                ...data,
+                time: data.created_at
+            }
         });
 
     } catch (error) {
@@ -92,31 +114,49 @@ app.post("/api/emergencies", (req, res) => {
     }
 });
 
-app.put("/api/emergencies/:id", (req, res) => {
+// UPDATE emergency status
+app.put("/api/emergencies/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
-        const emergencies = readEmergencies();
 
-        const emergency = emergencies.find(
-            item => item.id === id
-        );
-
-        if (!emergency) {
-            return res.status(404).json({
+        if (!Number.isFinite(id)) {
+            return res.status(400).json({
                 success: false,
-                message: "Emergency not found."
+                message: "Invalid emergency ID."
             });
         }
 
-        if (req.body.status) {
-            emergency.status = req.body.status;
+        const { status } = req.body;
+
+        if (!status) {
+            return res.status(400).json({
+                success: false,
+                message: "Status is required."
+            });
         }
 
-        saveEmergencies(emergencies);
+        const { data, error } = await supabase
+            .from("emergencies")
+            .update({ status })
+            .eq("id", id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Supabase UPDATE error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to update emergency."
+            });
+        }
 
         res.json({
             success: true,
-            emergency
+            emergency: {
+                ...data,
+                time: data.created_at
+            }
         });
 
     } catch (error) {
